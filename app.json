@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "KeepFit",
-    "slug": "KeepFit",
+    "slug": "keepfit",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,6 +10,9 @@
       "supportsTablet": true
     },
     "android": {
+      "permissions": [
+        "SCHEDULE_EXACT_ALARM"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -19,7 +22,24 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
-    }
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "KeepFit",
+      "shortName": "KeepFit",
+      "lang": "zh-CN"
+    },
+    "plugins": [
+      "expo-sqlite",
+      "expo-notifications",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "允许 KeepFit 读取照片，用于添加饮食记录。",
+          "cameraPermission": "允许 KeepFit 使用相机，用于拍摄饮食照片。",
+          "microphonePermission": false
+        }
+      ]
+    ]
   }
 }

@@ -1,0 +1,12 @@
+const assert = require('node:assert/strict');
+const {summarize} = require('./stats.js');
+const event=(id,type,extra={})=>({id,type,player:'wolf7',status:'confirmed',...extra});
+const input=[event('1','three_made'),event('2','two_miss'),event('3','ft_made'),event('4','ft_miss'),event('5','assist'),event('1','three_made'),event('6','two_made',{status:'unreviewed'}),event('7','two_made',{player:'other'})];
+assert.deepEqual(summarize(input),{points:4,fgm:1,fga:2,threeMade:1,threeAttempts:1,ftm:1,fta:2,assists:1,confirmed:5});
+assert.equal(summarize([event('1','two_made'),event('2','two_miss')]).points,2);
+assert.equal(summarize([event('1','two_made')]).fga,1);
+assert.equal(summarize([event('1','assist')]).fga,0);
+assert.equal(summarize([event('1','three_miss')]).threeAttempts,1);
+assert.equal(summarize([event('1','two_made',{status:'rejected'})]).confirmed,0);
+assert.equal(summarize([]).confirmed,0);
+console.log('Passed: 3-point accounting, separate free throws, assists, duplicate/rejected/unreviewed exclusions.');
