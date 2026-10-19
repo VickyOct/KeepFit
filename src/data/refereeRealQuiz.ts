@@ -4,8 +4,10 @@ import type { ScenarioQuestion } from '../refereeTypes';
 import { refereeScenarioExams } from './refereeScenarioExams';
 
 export type RefereeSignalId =
-  | 'stop-clock' | 'stop-clock-foul' | 'cancel-score' | 'visible-count' | 'direction-of-play' | 'travelling'
-  | 'five-seconds' | 'shot-clock' | 'backcourt' | 'number-11-15' | 'disruptive-foul' | 'two-free-throws';
+  | 'stop-clock' | 'stop-clock-foul' | 'two-points' | 'three-points' | 'cancel-score' | 'visible-count'
+  | 'direction-of-play' | 'jump-ball' | 'travelling' | 'five-seconds' | 'eight-seconds' | 'shot-clock' | 'backcourt'
+  | 'deliberate-kick' | 'basket-interference' | 'number-6-10' | 'number-11-15' | 'disruptive-foul' | 'flagrant-foul'
+  | 'two-free-throws' | 'three-free-throws';
 
 export type RefereeSignal = {
   image: ImageSourcePropType;
@@ -21,16 +23,25 @@ export type RefereeSignal = {
 export const refereeSignals: Record<RefereeSignalId, RefereeSignal> = {
   'stop-clock': { image: require('../../assets/referee/signals/stop-clock.png'), width: 461, height: 747, figure: '1', english: 'Stop the clock', chinese: '停表', alt: '裁判单臂上举，五指张开掌心向前' },
   'stop-clock-foul': { image: require('../../assets/referee/signals/stop-clock-foul.png'), width: 461, height: 792, figure: '2', english: 'Stop the clock for foul', chinese: '犯规停表', alt: '裁判单臂上举，握拳' },
+  'two-points': { image: require('../../assets/referee/signals/two-points.png'), width: 461, height: 793, figure: '5', english: '2 points', chinese: '两分', alt: '裁判举起两根手指，手腕向下摆动一次' },
+  'three-points': { image: require('../../assets/referee/signals/three-points.png'), width: 920, height: 846, figure: '6', english: '3 points', chinese: '三分（单臂＝出手，双臂＝有效）', alt: '裁判伸出三指：单臂上举表示三分出手，双臂上举表示三分有效' },
   'cancel-score': { image: require('../../assets/referee/signals/cancel-score.png'), width: 925, height: 794, figure: '11', english: 'Cancel score, cancel play', chinese: '取消得分', alt: '裁判双臂在胸前交叉后向两侧打开，剪刀式动作一次' },
   'visible-count': { image: require('../../assets/referee/signals/visible-count.png'), width: 925, height: 749, figure: '12', english: 'Visible count', chinese: '可见计数', alt: '裁判单臂平伸，掌心向下，边计数边横向摆动手掌' },
   'direction-of-play': { image: require('../../assets/referee/signals/direction-of-play.png'), width: 462, height: 952, figure: '15', english: 'Direction of play', chinese: '进攻方向', alt: '裁判单臂平举，手指指向进攻方向，手臂与边线平行' },
+  'jump-ball': { image: require('../../assets/referee/signals/jump-ball.png'), width: 461, height: 959, figure: '16', english: 'Held ball / jump ball situation', chinese: '跳球情形', alt: '裁判双拇指向上，再按交替球权箭头指向进攻方向' },
   travelling: { image: require('../../assets/referee/signals/travelling.png'), width: 461, height: 740, figure: '17', english: 'Travelling', chinese: '走步', alt: '裁判双拳在胸前上下绕圈旋转' },
   'five-seconds': { image: require('../../assets/referee/signals/five-seconds.png'), width: 461, height: 749, figure: '21', english: '5 seconds', chinese: '五秒违例', alt: '裁判单手举起，伸出五指' },
+  'eight-seconds': { image: require('../../assets/referee/signals/eight-seconds.png'), width: 462, height: 749, figure: '22', english: '8 seconds', chinese: '八秒违例', alt: '裁判双手举起，一手五指、一手三指，共示意八' },
   'shot-clock': { image: require('../../assets/referee/signals/shot-clock.png'), width: 461, height: 749, figure: '23', english: 'Shot clock', chinese: '进攻计时违例', alt: '裁判抬臂，手指触碰同侧肩部' },
   backcourt: { image: require('../../assets/referee/signals/backcourt.png'), width: 925, height: 749, figure: '24', english: 'Ball returned to backcourt', chinese: '回场违例', alt: '裁判手臂在身体前方左右摆动' },
+  'deliberate-kick': { image: require('../../assets/referee/signals/deliberate-kick.png'), width: 461, height: 794, figure: '25', english: 'Deliberate kick', chinese: '故意踢球', alt: '裁判单手指向自己的脚' },
+  'basket-interference': { image: require('../../assets/referee/signals/basket-interference.png'), width: 462, height: 899, figure: '26', english: 'Basket interference', chinese: '干扰投篮／篮筐干扰', alt: '裁判一手食指在另一手上方画圈' },
+  'number-6-10': { image: require('../../assets/referee/signals/number-6-10.png'), width: 461, height: 903, figure: '29', english: 'No. 6 - 10', chinese: '号码 6：右手 5 指＋左手 1 指', alt: '裁判右手伸出五指、左手伸出手指报告球员号码；6 号为右手 5 指加左手 1 指' },
   'number-11-15': { image: require('../../assets/referee/signals/number-11-15.png'), width: 462, height: 903, figure: '30', english: 'No. 11 - 15', chinese: '号码 11：右拳＋左手 1 指', alt: '裁判右手握拳、左手伸出手指报告球员号码；11 号为右拳加左手 1 指' },
   'disruptive-foul': { image: require('../../assets/referee/signals/disruptive-foul.png'), width: 462, height: 843, figure: '54', english: 'Disruptive foul', chinese: '破坏性犯规', alt: '裁判一臂握拳上举，再落到面部高度示意数字 2' },
+  'flagrant-foul': { image: require('../../assets/referee/signals/flagrant-foul.png'), width: 461, height: 738, figure: '55', english: 'Flagrant foul', chinese: '严重犯规', alt: '裁判举起双臂，一手在头顶上方握住另一手的手腕' },
   'two-free-throws': { image: require('../../assets/referee/signals/two-free-throws.png'), width: 365, height: 789, figure: '65', english: '2 free throws', chinese: '两次罚球', alt: '裁判向记录台举起两根手指' },
+  'three-free-throws': { image: require('../../assets/referee/signals/three-free-throws.png'), width: 365, height: 789, figure: '66', english: '3 free throws', chinese: '三次罚球', alt: '裁判向记录台举起三根手指' },
 };
 
 export type SignalStep = { text: string; signals?: RefereeSignalId[] };
@@ -202,6 +213,164 @@ const visuals: Visual[] = [
       { chinese: '继续比赛', english: 'Play on' },
     ],
     signalSequence: [{ text: '不吹哨、不做回场手势；B 在空中建立新控制，可合法落到后场：Play on。' }],
+  },
+  {
+    questionId: 'scenario-2-q3',
+    animation: require('../../assets/referee/eight-second-pass.gif'),
+    animationAlt: 'A 在后场推进，八秒计数届满时传球仍在飞向前场的循环示意动画',
+    animationLabel: '后场推进 · 八秒计数',
+    englishTerms: [
+      { chinese: '八秒违例', english: '8-second violation' },
+      { chinese: '后场／前场', english: 'Backcourt / frontcourt' },
+      { chinese: '空中传球', english: 'Pass in the air' },
+      { chinese: '中线', english: 'Centre line' },
+    ],
+    signalSequence: [
+      { text: '吹哨并直臂开掌停表：Stop the clock。', signals: ['stop-clock'] },
+      { text: '示意八秒违例：8 seconds（双手共伸出八指）。', signals: ['eight-seconds'] },
+      { text: '指向 B 的进攻方向；B 在其前场靠近中线处掷球，进攻钟 14 秒。', signals: ['direction-of-play'] },
+    ],
+  },
+  {
+    questionId: 'scenario-2-q5',
+    animation: require('../../assets/referee/tap-in-three.gif'),
+    animationAlt: 'A2 在三分区出手，球在上升途中被两分区的 A7 拍到后入篮的循环示意动画',
+    animationLabel: '三分出手 · 队友上升中拍球',
+    englishTerms: [
+      { chinese: '三分投篮区域', english: '3-point field goal area' },
+      { chinese: '合法触球', english: 'Legal touch' },
+      { chinese: '进球分值', english: 'Value of the goal' },
+      { chinese: '计三分', english: '3 points' },
+    ],
+    signalSequence: [
+      { text: '不吹违例哨；A2 出手时单臂三指上举示意三分出手，球入篮后改为双臂上举示意三分有效：3 points。', signals: ['three-points'] },
+    ],
+    signalNote: '分值看原出手位置，不看 A7 拍球时站在哪里。',
+  },
+  {
+    questionId: 'scenario-5-q3',
+    animation: require('../../assets/referee/rim-grab-interference.gif'),
+    animationAlt: 'A 的三分投篮仍在篮圈上时，B8 抓住篮圈的循环示意动画',
+    animationLabel: '球在篮圈上 · 防守抓圈',
+    englishTerms: [
+      { chinese: '篮筐干扰', english: 'Basket interference' },
+      { chinese: '有入篮机会', english: 'Possibility to enter the basket' },
+      { chinese: '判给得分', english: 'Points awarded' },
+      { chinese: '计三分', english: '3 points' },
+    ],
+    signalSequence: [
+      { text: '吹哨并直臂开掌停表：Stop the clock。', signals: ['stop-clock'] },
+      { text: '示意篮筐干扰：Basket interference（一手食指在另一手上方画圈）。', signals: ['basket-interference'] },
+      { text: '判给 A 三分：3 points（双臂三指上举）。', signals: ['three-points'] },
+      { text: '按投篮得分后的方式恢复，由 B 在端线后掷球。' },
+    ],
+    signalNote: '不要把这次抓圈当成普通悬挂的技术犯规；球在篮圈上时，抓圈就是干扰，按原三分计分。',
+  },
+  {
+    questionId: 'scenario-1-q6',
+    animation: require('../../assets/referee/buzzer-rebound.gif'),
+    animationAlt: 'A 的投篮在进攻钟蜂鸣前出手、只碰篮板，B2 在蜂鸣后立即接住篮板球的循环示意动画',
+    animationLabel: '进攻钟蜂鸣 · 立即抢到篮板',
+    englishTerms: [
+      { chinese: '进攻钟信号', english: 'Shot-clock signal' },
+      { chinese: '未碰篮圈', english: 'Ball fails to touch the ring' },
+      { chinese: '立即且清楚的控制', english: 'Immediate and clear control' },
+      { chinese: '继续比赛', english: 'Play on' },
+    ],
+    signalSequence: [{ text: '不吹哨；忽略这次进攻钟蜂鸣，让 B 的新控制继续：Play on。' }],
+  },
+  {
+    questionId: 'scenario-3-q5',
+    animation: require('../../assets/referee/closeout-landing.gif'),
+    animationAlt: 'A6 三分出手后仍在空中，B6 冲进其落地区域，A6 落地踩到 B6 脚的循环示意动画',
+    animationLabel: '三分防守 · 冲进落地区域',
+    englishTerms: [
+      { chinese: '严重犯规', english: 'Flagrant foul' },
+      { chinese: '扑防', english: 'Close-out' },
+      { chinese: '落地区域', english: 'Landing space' },
+      { chinese: '三次罚球', english: '3 free throws' },
+    ],
+    signalSequence: [
+      { text: '吹哨，同时直臂举拳：Stop the clock for a foul。', signals: ['stop-clock-foul'] },
+      { text: '做严重犯规手势：Flagrant foul（双臂上举，一手握住另一手腕）。', signals: ['flagrant-foul'] },
+      { text: '到记录台依次报告：B6 → Flagrant foul → 3 free throws。', signals: ['number-6-10', 'flagrant-foul', 'three-free-throws'] },
+      { text: '罚球后由 A 在前场掷球恢复，并核对 B6 的严重犯规累计。' },
+    ],
+  },
+  {
+    questionId: 'scenario-2-q2',
+    animation: require('../../assets/referee/straddle-pass-back.gif'),
+    animationAlt: 'A6 双脚跨在中线两侧接球后，马上回传后场 A9 的循环示意动画',
+    animationLabel: '后场推进 · 跨骑中线回传',
+    englishTerms: [
+      { chinese: '跨骑中线', english: 'Straddling the centre line' },
+      { chinese: '回场违例', english: 'Ball returned to the backcourt' },
+      { chinese: '八秒计数', english: '8-second count' },
+      { chinese: '继续比赛', english: 'Play on' },
+    ],
+    signalSequence: [{ text: '不吹哨、不做回场手势；八秒计数不重置，从第 5 秒接着数（只剩三秒）：Play on。' }],
+  },
+  {
+    questionId: 'scenario-4-q2',
+    animation: require('../../assets/referee/deliberate-kick.gif'),
+    animationAlt: 'A 前场传球时，B2 主动伸脚把球踢走的循环示意动画',
+    animationLabel: '传球路线 · 主动伸脚',
+    englishTerms: [
+      { chinese: '故意踢球', english: 'Deliberate kick' },
+      { chinese: '偶然碰到脚', english: 'Accidental contact with the foot' },
+      { chinese: '保留进攻时间', english: 'Shot clock continues' },
+      { chinese: '前场掷球', english: 'Frontcourt throw-in' },
+    ],
+    signalSequence: [
+      { text: '吹哨并直臂开掌停表：Stop the clock。', signals: ['stop-clock'] },
+      { text: '示意故意踢球：Deliberate kick（指向脚）。', signals: ['deliberate-kick'] },
+      { text: '指向 A 的进攻方向；A 在前场相应地点掷球，进攻钟保留 16 秒。', signals: ['direction-of-play'] },
+    ],
+  },
+  {
+    questionId: 'scenario-3-q10',
+    animation: require('../../assets/referee/semicircle-drive.gif'),
+    animationAlt: 'A3 控球突破跨过半圆线，空中传球后与一脚踩在半圆线上的 B4 接触的循环示意动画',
+    animationLabel: '突破上篮 · 无撞人半圆区',
+    englishTerms: [
+      { chinese: '无撞人半圆区', english: 'No-charge semicircle' },
+      { chinese: '撞人', english: 'Charging' },
+      { chinese: '合法防守位置', english: 'Legal guarding position' },
+      { chinese: '继续比赛', english: 'Play on' },
+    ],
+    signalSequence: [{ text: '不吹哨、不做撞人手势；半圆线属于半圆区，本题情形继续比赛：Play on。' }],
+  },
+  {
+    questionId: 'scenario-2-q8',
+    animation: require('../../assets/referee/wedged-ball.gif'),
+    animationAlt: 'A 的投篮把球夹在篮圈与篮板之间的循环示意动画',
+    animationLabel: '投篮夹球 · 篮圈与篮板之间',
+    englishTerms: [
+      { chinese: '跳球情形', english: 'Jump ball situation' },
+      { chinese: '交替球权', english: 'Alternating possession' },
+      { chinese: '球夹在篮圈与篮板之间', english: 'Ball lodged between ring and backboard' },
+      { chinese: '进攻钟 14 秒', english: '14-second shot clock' },
+    ],
+    signalSequence: [
+      { text: '吹哨并直臂开掌停表：Stop the clock。', signals: ['stop-clock'] },
+      { text: '做跳球情形手势：Held ball / jump ball situation（双拇指向上），再按交替球权箭头指向 A 的进攻方向。', signals: ['jump-ball'] },
+      { text: 'A 以交替球权掷球，进攻钟 14 秒。' },
+    ],
+  },
+  {
+    questionId: 'scenario-5-q5',
+    animation: require('../../assets/referee/free-throw-tip.gif'),
+    animationAlt: 'A 最后一罚碰篮圈未进，A8 合法把球拍进的循环示意动画',
+    animationLabel: '最后一罚 · 碰圈后补进',
+    englishTerms: [
+      { chinese: '最后一次罚球', english: 'Last free throw' },
+      { chinese: '补篮', english: 'Tip-in' },
+      { chinese: '两分进球', english: '2-point field goal' },
+      { chinese: '罚球违例', english: 'Free-throw violation' },
+    ],
+    signalSequence: [
+      { text: '不吹违例哨；向记录台示意两分：2 points（两指、手腕下摆），避免被误记为罚球 1 分。', signals: ['two-points'] },
+    ],
   },
 ];
 

@@ -7,6 +7,7 @@ checked in so the quiz works offline; rerun this script after changing a scene.
 from __future__ import annotations
 
 import math
+import sys
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
@@ -274,6 +275,220 @@ def endline_exchange(frame: int) -> Image.Image:
     return image
 
 
+def centre_label(draw: ImageDraw.ImageDraw) -> None:
+    draw.text((266, 292), "CENTRE LINE", font=FONT_SMALL, fill=MUTED)
+
+
+def tag(draw: ImageDraw.ImageDraw, x: float, y: float, text: str, colour: str = INK) -> None:
+    box = draw.textbbox((0, 0), text, font=FONT_SMALL)
+    draw.rounded_rectangle((x - 6, y - 4, x + box[2] - box[0] + 6, y + box[3] - box[1] + 8), 8, fill=WHITE, outline=colour, width=2)
+    draw.text((x, y), text, font=FONT_SMALL, fill=colour)
+
+
+def eight_second_pass(frame: int) -> Image.Image:
+    image, draw = base("BACKCOURT COUNT", frame)
+    t = frame / (FRAMES - 1)
+    centre_label(draw)
+    clock(draw, f"{min(8, 1 + int(t / 0.8 * 7.99))}")
+    player(draw, 170, 215, "A3", PRIMARY)
+    player(draw, 430, 165, "A6", PRIMARY, "up")
+    player(draw, 250, 240, "B3", DEFENCE, "wide")
+    if t < 0.6:
+        ball(draw, 194, 228 - abs(math.sin(t * math.pi * 6)) * 22)
+    else:
+        bx, by = point((195, 200), (420, 140), (t - 0.6) / 0.4)
+        ball(draw, bx, by - 30 * math.sin(math.pi * (t - 0.6) / 0.4))
+    arrow(draw, (200, 270), (420, 270))
+    return image
+
+
+def deliberate_kick(frame: int) -> Image.Image:
+    image, draw = base("PASSING LANE", frame)
+    t = frame / (FRAMES - 1)
+    clock(draw, "16")
+    player(draw, 370, 140, "A4", PRIMARY)
+    player(draw, 545, 255, "A7", PRIMARY, "up")
+    player(draw, 455, 190, "B2", DEFENCE)
+    kick = 0 if t < 0.25 else min(1.0, (t - 0.25) / 0.15)
+    draw.line((462, 205, 462 + 24 * kick, 214 + 14 * kick), fill=DEFENCE, width=8)
+    if t < 0.42:
+        bx, by = point((392, 150), (482, 226), t / 0.42)
+    else:
+        bx, by = point((484, 228), (430, 300), (t - 0.42) / 0.58)
+    ball(draw, bx, by)
+    if 0.4 < t < 0.6:
+        draw.ellipse((470, 214, 498, 242), outline="#F3BD5B", width=4)
+    return image
+
+
+def rim_grab_interference(frame: int) -> Image.Image:
+    image, draw = base("BALL ON THE RING", frame)
+    t = frame / (FRAMES - 1)
+    tag(draw, 458, 300, "3PT LINE", MUTED)
+    player(draw, 405, 225, "A2", PRIMARY, "up" if t < 0.2 else "down")
+    player(draw, 525, 160, "A9", PRIMARY)
+    lift = 22 * math.sin(math.pi * min(1.0, max(0.0, (t - 0.5) / 0.5)))
+    if t < 0.42:
+        bx, by = point((410, 186), (590, 186), t / 0.42)
+        ball(draw, bx, by - 55 * math.sin(math.pi * t / 0.42))
+    else:
+        ball(draw, 588 + 4 * math.sin(t * math.pi * 6), 186)
+    player(draw, 560, 245 - lift, "B8", DEFENCE, "up" if t > 0.5 else "down")
+    if t > 0.55:
+        draw.line((574, 210 - lift, 590, 198), fill=DEFENCE, width=7)
+        draw.ellipse((574, 180, 610, 212), outline="#F3BD5B", width=4)
+    return image
+
+
+def closeout_landing(frame: int) -> Image.Image:
+    image, draw = base("CLOSE-OUT", frame)
+    t = frame / (FRAMES - 1)
+    tag(draw, 458, 300, "3PT LINE", MUTED)
+    lift = 30 * math.sin(math.pi * min(1.0, t / 0.7))
+    player(draw, 405, 220 - lift, "A6", PRIMARY, "up" if t < 0.7 else "down")
+    bx6, by6 = point((530, 175), (420, 252), t / 0.55)
+    player(draw, bx6, by6, "B6", DEFENCE, "up")
+    if t < 0.18:
+        ball(draw, 410, 180 - lift)
+    elif t < 0.55:
+        bx, by = point((412, 170), (586, 188), (t - 0.18) / 0.37)
+        ball(draw, bx, by - 50 * math.sin(math.pi * (t - 0.18) / 0.37))
+    else:
+        ball(draw, *point((586, 188), (540, 120), (t - 0.55) / 0.45))
+    arrow(draw, (522, 205), (442, 245), DEFENCE)
+    if t > 0.7:
+        draw.ellipse((395, 236, 437, 268), outline="#F3BD5B", width=4)
+    return image
+
+
+def wedged_ball(frame: int) -> Image.Image:
+    image, draw = base("SHOT AT THE BASKET", frame)
+    t = frame / (FRAMES - 1)
+    draw.rounded_rectangle((36, 78, 140, 124), 10, fill=INK)
+    draw.text((48, 88), "AP", font=FONT_TITLE, fill="#F3BD5B")
+    arrow(draw, (82, 101), (126, 101), "#F3BD5B")
+    player(draw, 450, 220, "A5", PRIMARY, "up" if t < 0.2 else "down")
+    player(draw, 545, 245, "A8", PRIMARY, "up" if t > 0.5 else "down")
+    player(draw, 545, 145, "B5", DEFENCE, "up" if t > 0.5 else "down")
+    if t < 0.45:
+        bx, by = point((455, 185), (598, 178), t / 0.45)
+        ball(draw, bx, by - 55 * math.sin(math.pi * t / 0.45))
+    else:
+        ball(draw, 598, 178)
+        if t > 0.55:
+            draw.ellipse((582, 162, 614, 194), outline="#F3BD5B", width=4)
+    return image
+
+
+def buzzer_rebound(frame: int) -> Image.Image:
+    image, draw = base("SHOT-CLOCK SEQUENCE", frame)
+    t = frame / (FRAMES - 1)
+    clock(draw, "1.0" if t < 0.4 else "0.0")
+    if t >= 0.4:
+        draw.text((132, 88), "BUZZER", font=FONT_TITLE, fill=DEFENCE)
+    player(draw, 420, 220, "A4", PRIMARY, "up" if t < 0.2 else "down")
+    bx2, by2 = point((545, 255), (470, 250), max(0.0, (t - 0.82) / 0.18))
+    player(draw, bx2, by2, "B2", DEFENCE, "up" if 0.6 < t < 0.85 else "down")
+    if t < 0.15:
+        ball(draw, 425, 182)
+    elif t < 0.55:
+        bx, by = point((425, 182), (597, 178), (t - 0.15) / 0.4)
+        ball(draw, bx, by - 50 * math.sin(math.pi * (t - 0.15) / 0.4))
+    elif t < 0.75:
+        ball(draw, *point((595, 178), (548, 222), (t - 0.55) / 0.2))
+    else:
+        ball(draw, bx2 + 2, by2 - 36)
+    if 0.5 < t < 0.6:
+        draw.line((600, 170, 600, 184), fill="#F3BD5B", width=5)
+    return image
+
+
+def straddle_pass_back(frame: int) -> Image.Image:
+    image, draw = base("BACKCOURT COUNT", frame)
+    t = frame / (FRAMES - 1)
+    centre_label(draw)
+    clock(draw, f"{min(7, 5 + int(t * 2.99))}")
+    draw.ellipse((300, 238, 314, 246), fill=INK)
+    draw.ellipse((326, 238, 340, 246), fill=INK)
+    player(draw, 320, 210, "A6", PRIMARY, "up" if t < 0.6 else "down")
+    player(draw, 180, 190, "A9", PRIMARY)
+    player(draw, 390, 200, "B6", DEFENCE, "wide")
+    if t < 0.35:
+        ball(draw, *point((200, 185), (318, 176), t / 0.35))
+    elif t < 0.55:
+        ball(draw, 320, 176)
+    else:
+        ball(draw, *point((318, 180), (200, 185), (t - 0.55) / 0.45))
+    arrow(draw, (300, 270), (200, 270))
+    return image
+
+
+def tap_in_three(frame: int) -> Image.Image:
+    image, draw = base("THREE-POINT ATTEMPT", frame)
+    t = frame / (FRAMES - 1)
+    tag(draw, 458, 300, "3PT LINE", MUTED)
+    player(draw, 420, 135, "A2", PRIMARY, "up" if t < 0.25 else "down")
+    lift = 20 * math.sin(math.pi * min(1.0, max(0.0, (t - 0.2) / 0.45)))
+    player(draw, 535, 235 - lift, "A7", PRIMARY, "up")
+    player(draw, 585, 262, "B2", DEFENCE)
+    if t < 0.4:
+        bx, by = point((428, 100), (538, 170), t / 0.4)
+        ball(draw, bx, by - 35 * math.sin(math.pi * t / 0.4 * 0.6))
+    elif t < 0.8:
+        bx, by = point((540, 172), (592, 195), (t - 0.4) / 0.4)
+        ball(draw, bx, by - 40 * math.sin(math.pi * (t - 0.4) / 0.4))
+    else:
+        ball(draw, *point((592, 195), (592, 222), (t - 0.8) / 0.2))
+    if 0.36 < t < 0.5:
+        draw.ellipse((522, 154, 556, 188), outline="#F3BD5B", width=4)
+    return image
+
+
+def semicircle_drive(frame: int) -> Image.Image:
+    image, draw = base("DRIVE TO THE BASKET", frame)
+    t = frame / (FRAMES - 1)
+    draw.arc((542, 145, 642, 245), 90, 270, fill=DEFENCE, width=3)
+    tag(draw, 478, 258, "SEMICIRCLE", DEFENCE)
+    player(draw, 545, 205, "B4", DEFENCE)
+    player(draw, 560, 105, "A8", PRIMARY, "up")
+    lift = 22 * math.sin(math.pi * min(1.0, max(0.0, (t - 0.35) / 0.5)))
+    ax, ay = point((360, 215), (508, 207), t / 0.7)
+    player(draw, ax, ay - lift, "A3", PRIMARY, "up" if t > 0.35 else "down")
+    if t < 0.35:
+        ball(draw, ax + 22, ay + 12 - abs(math.sin(t * math.pi * 6)) * 18)
+    elif t < 0.5:
+        ball(draw, ax, ay - lift - 34)
+    else:
+        ball(draw, *point((480, 165), (552, 125), (t - 0.5) / 0.3))
+    if t > 0.7:
+        draw.ellipse((510, 186, 540, 226), outline="#F3BD5B", width=4)
+    return image
+
+
+def free_throw_tip(frame: int) -> Image.Image:
+    image, draw = base("LAST FREE THROW", frame)
+    t = frame / (FRAMES - 1)
+    draw.rounded_rectangle((36, 78, 146, 124), 10, fill=INK)
+    draw.text((48, 88), "FT 2/2", font=FONT_TITLE, fill="#F3BD5B")
+    player(draw, 478, 204, "A1", PRIMARY, "up" if t < 0.2 else "down")
+    player(draw, 540, 105, "B3", DEFENCE)
+    player(draw, 540, 303, "B4", DEFENCE)
+    lift = 20 * math.sin(math.pi * min(1.0, max(0.0, (t - 0.45) / 0.45)))
+    player(draw, 585, 290 - lift - 40 * min(1.0, max(0.0, (t - 0.4) / 0.2)), "A8", PRIMARY, "up" if t > 0.45 else "down")
+    if t < 0.38:
+        bx, by = point((482, 168), (588, 190), t / 0.38)
+        ball(draw, bx, by - 40 * math.sin(math.pi * t / 0.38))
+    elif t < 0.6:
+        ball(draw, *point((588, 190), (572, 222), (t - 0.38) / 0.22))
+    elif t < 0.82:
+        ball(draw, *point((572, 222), (592, 192), (t - 0.6) / 0.22))
+    else:
+        ball(draw, *point((592, 195), (592, 222), (t - 0.82) / 0.18))
+    if 0.36 < t < 0.48:
+        draw.ellipse((574, 180, 610, 212), outline="#F3BD5B", width=4)
+    return image
+
+
 SCENES = {
     "ground-roll-travel.gif": ground_roll,
     "legal-slide-pass.gif": slide_and_pass,
@@ -285,6 +500,16 @@ SCENES = {
     "shot-clock-release.gif": shot_clock_release,
     "safe-rim-hang.gif": safe_rim_hang,
     "endline-exchange.gif": endline_exchange,
+    "eight-second-pass.gif": eight_second_pass,
+    "deliberate-kick.gif": deliberate_kick,
+    "rim-grab-interference.gif": rim_grab_interference,
+    "closeout-landing.gif": closeout_landing,
+    "wedged-ball.gif": wedged_ball,
+    "buzzer-rebound.gif": buzzer_rebound,
+    "straddle-pass-back.gif": straddle_pass_back,
+    "tap-in-three.gif": tap_in_three,
+    "semicircle-drive.gif": semicircle_drive,
+    "free-throw-tip.gif": free_throw_tip,
 }
 
 
@@ -302,9 +527,14 @@ def save_gif(name: str, scene) -> None:
 
 
 def main() -> None:
+    # Optional GIF names limit the run, so unchanged clips are not re-encoded.
+    names = sys.argv[1:] or list(SCENES)
+    unknown = [name for name in names if name not in SCENES]
+    if unknown:
+        raise SystemExit(f"unknown scene: {', '.join(unknown)}")
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    for name, scene in SCENES.items():
-        save_gif(name, scene)
+    for name in names:
+        save_gif(name, SCENES[name])
         print(f"generated {name}")
 
 

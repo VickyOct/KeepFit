@@ -35,7 +35,7 @@ export function RefereeRealQuiz({ onOpenReference, onStudy }: Props) {
         <Text style={styles.eyebrow}>RANDOM COURT CALL · 随机临场判断</Text>
         <Text style={styles.title}>真实判例练习</Text>
       </View>
-      <View style={styles.countBadge}><Text style={styles.countText}>10 CLIPS</Text></View>
+      <View style={styles.countBadge}><Text style={styles.countText}>{refereeRealQuizQuestions.length} CLIPS</Text></View>
     </View>
     <Text style={styles.body}>点击后随机抽取判例动图。先像在场上一样吹哨或做手势，再展开答案；不用打字，也不会调用麦克风或摄像头。</Text>
     <Text style={styles.note}>题库按打乱顺序完整轮换，不按章节排列；一轮内不会重复。动图为离线战术示意，并非官方比赛录像。</Text>
