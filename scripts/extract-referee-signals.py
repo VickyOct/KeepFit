@@ -33,16 +33,21 @@ SIGNALS = {
     "direction-of-play": (64, (305, 515, 427, 756)), # 15 Direction of play and/or out-of-bounds
     "jump-ball": (64, (424, 527, 542, 770)),         # 16 Held ball / jump ball situation
     "travelling": (65, (70, 108, 189, 297)),         # 17 Travelling
+    "double-dribble": (65, (188, 95, 308, 310)),     # 18 Illegal dribble: double dribbling
     "five-seconds": (65, (188, 325, 304, 514)),      # 21 5 seconds
     "eight-seconds": (65, (305, 325, 423, 514)),     # 22 8 seconds
     "shot-clock": (65, (424, 325, 540, 514)),        # 23 Shot clock
     "backcourt": (65, (70, 551, 302, 741)),          # 24 Ball returned to backcourt
     "deliberate-kick": (65, (303, 538, 425, 745)),   # 25 Deliberate kick or block of the ball
     "basket-interference": (65, (425, 538, 540, 782)), # 26 Goaltending / basket interference
+    "number-1-5": (66, (70, 305, 188, 508)),         # Player No. 1 - 5
     "number-6-10": (66, (188, 305, 304, 533)),       # Player No. 6 - 10
     "number-11-15": (66, (305, 305, 423, 533)),      # Player No. 11 - 15
+    "illegal-use-of-hands": (68, (70, 66, 188, 268)), # 41 Illegal use of hands
+    "double-foul": (69, (70, 92, 188, 292)),         # 52 Double foul
     "disruptive-foul": (69, (305, 92, 423, 306)),    # 54 Disruptive foul
     "flagrant-foul": (69, (424, 92, 540, 280)),      # 55 Flagrant foul
+    "foul-no-free-throws": (70, (66, 95, 163, 347)), # Reporting to table: after foul without free throws
     "two-free-throws": (70, (352, 108, 448, 346)),   # Reporting to table: 2 free throws
     "three-free-throws": (70, (449, 108, 545, 346)), # Reporting to table: 3 free throws
 }

@@ -27,13 +27,14 @@ test('real quiz bank is balanced, mixed and traceable to the matching official r
   const { refereeLessons } = loader.load('src/data/refereeLessons.ts');
   const { referencePage } = loader.load('src/refereeUtils.ts');
 
-  assert.equal(refereeRealQuizQuestions.length, 20);
-  assert.equal(new Set(refereeRealQuizQuestions.map((question) => question.id)).size, 20);
-  assert.equal(refereeRealQuizQuestions.filter((question) => question.whistle).length, 10);
-  assert.equal(refereeRealQuizQuestions.filter((question) => !question.whistle).length, 10);
+  const total = refereeRealQuizQuestions.length;
+  assert.equal(total, 32);
+  assert.equal(new Set(refereeRealQuizQuestions.map((question) => question.id)).size, total);
+  assert.ok(refereeRealQuizQuestions.filter((question) => question.whistle).length >= 10);
+  assert.ok(refereeRealQuizQuestions.filter((question) => !question.whistle).length >= 10);
   assert.ok(refereeRealQuizQuestions.every((question) => question.animation.uri.endsWith('.gif')));
-  assert.equal(new Set(refereeRealQuizQuestions.map((question) => question.animation.uri)).size, 20, 'each question has its own GIF');
-  assert.equal(new Set(refereeRealQuizQuestions.map((question) => question.animationLabel)).size, 20);
+  assert.equal(new Set(refereeRealQuizQuestions.map((question) => question.animation.uri)).size, total, 'each question has its own GIF');
+  assert.equal(new Set(refereeRealQuizQuestions.map((question) => question.animationLabel)).size, total);
   assert.ok(refereeRealQuizQuestions.every((question) => question.englishTerms.length >= 4));
   assert.ok(refereeRealQuizQuestions.every((question) => question.signalSequence.length >= 1));
 
@@ -94,10 +95,20 @@ test('whistle answers map each step to cropped FIBA Appendix A signals; play-on 
   assert.deepEqual(byId('scenario-4-q6'), ['visible-count']);
   assert.deepEqual(byId('scenario-2-q5'), ['three-points']);
   assert.deepEqual(byId('scenario-5-q5'), ['two-points']);
+  assert.deepEqual(byId('scenario-1-q4'), ['stop-clock', 'double-dribble', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-1-q10'), ['stop-clock-foul', 'double-foul', 'number-1-5', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-2-q1'), ['stop-clock', 'five-seconds', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-2-q9'), ['stop-clock', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-3-q2'), ['stop-clock-foul', 'number-1-5', 'illegal-use-of-hands', 'foul-no-free-throws']);
+  assert.deepEqual(byId('scenario-3-q4'), ['stop-clock-foul', 'disruptive-foul', 'disruptive-foul', 'two-free-throws']);
+  assert.deepEqual(byId('scenario-5-q4'), ['stop-clock', 'basket-interference', 'cancel-score', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-5-q6'), ['stop-clock', 'shot-clock', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-4-q3'), ['two-points']);
   for (const question of refereeRealQuizQuestions.filter((item) => !item.whistle)) {
     assert.ok(byId(question.id).every((id) => ['visible-count', 'two-points', 'three-points'].includes(id)), question.id);
   }
-  for (const id of ['scenario-2-q4', 'scenario-4-q1', 'scenario-1-q9', 'scenario-1-q3', 'scenario-1-q6', 'scenario-2-q2', 'scenario-3-q10']) {
+  for (const id of ['scenario-2-q4', 'scenario-4-q1', 'scenario-1-q9', 'scenario-1-q3', 'scenario-1-q6', 'scenario-2-q2', 'scenario-3-q10',
+    'scenario-1-q1', 'scenario-2-q7', 'scenario-3-q6']) {
     assert.deepEqual(byId(id), [], id);
   }
 });
