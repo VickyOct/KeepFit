@@ -42,6 +42,7 @@ export function RefereeScreen() {
   const [saveError, setSaveError] = useState(false);
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<Filter>('全部');
+  const [showCourses, setShowCourses] = useState(false);
   const [selected, setSelected] = useState<RefereeLesson | null>(null);
   const [mode, setMode] = useState<'lesson' | 'quiz' | 'result'>('lesson');
   const [questionIndex, setQuestionIndex] = useState(0);
@@ -126,7 +127,7 @@ export function RefereeScreen() {
     if (busy) return;
     setOriginal(null);
     pendingSection.current = null; setReadingTarget(null);
-    if (mode !== 'lesson') setMode('lesson'); else setSelected(null);
+    if (mode !== 'lesson') setMode('lesson'); else if (selected) setSelected(null); else setShowCourses(false);
     scroll.current?.scrollTo({ y: 0, animated: false });
   }
 
@@ -151,7 +152,7 @@ export function RefereeScreen() {
   }
 
   function showScenarioCatalog() {
-    setExamSelection(null); setExamReturn(null); setSelected(null); setMode('lesson'); setOriginal(null);
+    setExamSelection(null); setExamReturn(null); setSelected(null); setShowCourses(false); setMode('lesson'); setOriginal(null);
     sectionPositions.current = {}; contentHeight.current = 0;
     pendingSection.current = 'scenario-exams';
   }
@@ -176,39 +177,23 @@ export function RefereeScreen() {
       }} />;
   }
 
+  const backTarget = selected && mode !== 'lesson' ? '本课阅读' : selected && showCourses ? '课程列表' : '裁判学习';
+
   return <View style={styles.screen}>
-    {selected && <View style={styles.toolbar}>
-      <Pressable accessibilityRole="button" accessibilityLabel={mode === 'lesson' ? '返回课程列表' : '返回本课阅读'} disabled={busy} onPress={back} style={styles.back}>
-        <Text style={styles.backText}>‹ {mode === 'lesson' ? '课程列表' : '本课阅读'}</Text>
+    {(selected || showCourses) && <View style={styles.toolbar}>
+      <Pressable accessibilityRole="button" accessibilityLabel={`返回${backTarget}`} disabled={busy} onPress={back} style={styles.back}>
+        <Text style={styles.backText}>‹ {backTarget}</Text>
       </Pressable>
-      <Text style={styles.toolbarText}>{mode === 'quiz' ? '章节测验' : mode === 'result' ? '测验复盘' : `第 ${selected.order} 课 / ${refereeLessons.length}`}</Text>
+      <Text style={styles.toolbarText}>{!selected ? `${refereeLessons.length} 个主题课程` : mode === 'quiz' ? '章节测验' : mode === 'result' ? '测验复盘' : `第 ${selected.order} 课 / ${refereeLessons.length}`}</Text>
     </View>}
-    <ScrollView ref={scroll} key={`${selected?.id ?? 'catalog'}-${mode}`} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}
+    <ScrollView ref={scroll} key={`${selected?.id ?? (showCourses ? 'courses' : 'catalog')}-${mode}`} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.page}
       onContentSizeChange={(_, height) => { contentHeight.current = height; scrollToPendingSection(); }}>
       {loadNotice}
       {saveError && <View style={styles.errorNotice}><Text style={styles.errorText}>未保存，请再次点击重试。原有进度未被覆盖。</Text></View>}
-      {!selected ? <>
-        <Text style={styles.eyebrow}>KEEPFIT · REFEREE ACADEMY</Text>
-        <Text style={styles.title}>篮球裁判学习</Text>
-        <Text style={styles.subtitle}>读懂规则，也练会场上的判断。</Text>
-        <View style={styles.hero}>
-          <View style={styles.heroTop}><Text style={styles.version}>FIBA 2026</Text><Text style={styles.versionDate}>2026.10.01 起适用</Text></View>
-          <Text style={styles.heroTitle}>从第一声哨，到最后一次判罚</Text>
-          <Text style={styles.heroText}>16 个主题课程 · 每课 10 题{ '\n' }10 个随机动图判例 · 5 套综合情景测试</Text>
-          <View style={styles.stats}>
-            <View style={styles.stat}><Text style={styles.statValue}>{status === 'ready' ? completed : '—'}<Text style={styles.statTotal}> / 16</Text></Text><Text style={styles.statLabel}>阅读完成</Text></View>
-            <View style={styles.stat}><Text style={styles.statValue}>{status === 'ready' ? mastered : '—'}<Text style={styles.statTotal}> / 16</Text></Text><Text style={styles.statLabel}>测验已通过</Text></View>
-          </View>
-          <View accessibilityRole="progressbar" accessibilityLabel="课程阅读进度" accessibilityValue={{ min: 0, max: 16, now: completed }} style={styles.track}><View style={[styles.trackFill, { width: `${completed / 16 * 100}%` }]} /></View>
-          <Text style={styles.heroText}>通过标准 {REFEREE_PASS_PERCENT}%（8 / 10）· 可重复练习</Text>
-          {status === 'ready' && <Button label={nextLesson ? `继续学习 · 第 ${nextLesson.order} 课` : '课程已读完 · 复习第 1 课'} onPress={() => showLesson(nextLesson ?? refereeLessons[0])} />}
-          <Button label="前往综合情景测试 · 5 套 50 题" secondary onPress={() => { pendingSection.current = 'scenario-exams'; scrollToPendingSection(); }} />
-        </View>
-        <RefereeRealQuiz onOpenReference={(reference) => void openSource(reference)} onStudy={(lessonId, sectionId, reference) => {
-          const lesson = refereeLessons.find((item) => item.id === lessonId)!;
-          showLesson(lesson); pendingSection.current = sectionId; setReadingTarget(sectionId);
-          setOriginal({ sectionId, reference });
-        }} />
+      {!selected && showCourses ? <>
+        <Text style={styles.eyebrow}>FIBA 2026 · 主题课程</Text>
+        <Text style={styles.title}>从第一声哨，到最后一次判罚</Text>
+        <Text style={styles.subtitle}>{refereeLessons.length} 个主题课程 · 每课 10 题 · 已读 {status === 'ready' ? completed : '—'} / {refereeLessons.length}</Text>
         <TextInput accessibilityLabel="搜索裁判课程" placeholder="搜中文、travelling、shot clock、条款编号…" placeholderTextColor={colors.muted} value={query} onChangeText={setQuery} returnKeyType="search" style={styles.search} />
         <Text style={styles.note}>关键术语括号内附英文，方便对照课堂用语；同一段内重复出现时以中文为主。</Text>
         <View style={styles.chips}>{(['全部', '未完成', '已完成', '待巩固'] as const).map((item) => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: filter === item }} onPress={() => setFilter(item)} style={[styles.chip, filter === item && styles.chipActive]}><Text style={[styles.chipText, filter === item && styles.chipTextActive]}>{item}</Text></Pressable>)}</View>
@@ -226,6 +211,35 @@ export function RefereeScreen() {
           </Pressable>;
         })}
         {visible.length === 0 && <View style={styles.card}><Text style={styles.sectionTitle}>没有匹配课程</Text><Text style={styles.body}>换个关键词或筛选项试试。</Text></View>}
+        <Button label="读完课程后 · 前往综合情景测试" secondary onPress={showScenarioCatalog} />
+      </> : !selected ? <>
+        <Text style={styles.eyebrow}>KEEPFIT · REFEREE ACADEMY</Text>
+        <Text style={styles.title}>篮球裁判学习</Text>
+        <Text style={styles.subtitle}>读懂规则，也练会场上的判断。</Text>
+        <View style={styles.hero}>
+          <View style={styles.heroTop}><Text style={styles.version}>FIBA 2026</Text><Text style={styles.versionDate}>2026.10.01 起适用</Text></View>
+          <Text style={styles.heroTitle}>从第一声哨，到最后一次判罚</Text>
+          <Text style={styles.heroText}>16 个主题课程 · 每课 10 题{ '\n' }10 个随机动图判例 · 5 套综合情景测试</Text>
+          <View style={styles.stats}>
+            <View style={styles.stat}><Text style={styles.statValue}>{status === 'ready' ? completed : '—'}<Text style={styles.statTotal}> / 16</Text></Text><Text style={styles.statLabel}>阅读完成</Text></View>
+            <View style={styles.stat}><Text style={styles.statValue}>{status === 'ready' ? mastered : '—'}<Text style={styles.statTotal}> / 16</Text></Text><Text style={styles.statLabel}>测验已通过</Text></View>
+          </View>
+          <View accessibilityRole="progressbar" accessibilityLabel="课程阅读进度" accessibilityValue={{ min: 0, max: 16, now: completed }} style={styles.track}><View style={[styles.trackFill, { width: `${completed / 16 * 100}%` }]} /></View>
+          <Text style={styles.heroText}>通过标准 {REFEREE_PASS_PERCENT}%（8 / 10）· 可重复练习</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={`查看全部 ${refereeLessons.length} 个课程`} onPress={() => setShowCourses(true)} style={styles.courseCard}>
+            <View style={styles.courseMain}>
+              <Text style={styles.courseTitle}>{refereeLessons.length} 个课程 · 可按自己的节奏学习</Text>
+              <Text style={styles.courseFooter}>按主题浏览 · 搜索术语或条款 · 筛选未完成与待巩固</Text>
+            </View><Text style={styles.chevron}>›</Text>
+          </Pressable>
+          {status === 'ready' && <Button label={nextLesson ? `继续学习 · 第 ${nextLesson.order} 课` : '课程已读完 · 复习第 1 课'} onPress={() => showLesson(nextLesson ?? refereeLessons[0])} />}
+          <Button label="前往综合情景测试 · 5 套 50 题" secondary onPress={() => { pendingSection.current = 'scenario-exams'; scrollToPendingSection(); }} />
+        </View>
+        <RefereeRealQuiz onOpenReference={(reference) => void openSource(reference)} onStudy={(lessonId, sectionId, reference) => {
+          const lesson = refereeLessons.find((item) => item.id === lessonId)!;
+          showLesson(lesson); pendingSection.current = sectionId; setReadingTarget(sectionId);
+          setOriginal({ sectionId, reference });
+        }} />
         <View style={styles.card} testID="scenario-exam-catalog" onLayout={(event) => { sectionPositions.current['scenario-exams'] = event.nativeEvent.layout.y; scrollToPendingSection(); }}>
           <Text style={styles.eyebrow}>课程最后 · 综合练习</Text>
           <Text style={styles.sectionTitle}>综合情景测试 · 5 套 50 题</Text>
