@@ -1,9 +1,12 @@
 import { useRef, useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { createRealQuizQueue, refereeRealQuizQuestions } from '../data/refereeRealQuiz';
+import { createRealQuizQueue, refereeRealQuizQuestions, refereeSignals } from '../data/refereeRealQuiz';
 import { referencePage } from '../refereeUtils';
 import { colors } from '../theme';
+
+// Rulebook figures share one height so a step's signals line up; two portrait figures fit a phone row.
+const FIGURE_HEIGHT = 200;
 
 type Props = {
   onOpenReference: (reference: string) => void;
@@ -15,6 +18,7 @@ export function RefereeRealQuiz({ onOpenReference, onStudy }: Props) {
   const [revealed, setRevealed] = useState(false);
   const queue = useRef<string[]>([]);
   const question = refereeRealQuizQuestions.find((item) => item.id === questionId) ?? null;
+  const hasSignals = question?.signalSequence.some((step) => step.signals?.length) ?? false;
 
   function generate() {
     let remaining = queue.current;
@@ -76,12 +80,29 @@ export function RefereeRealQuiz({ onOpenReference, onStudy }: Props) {
         <View style={styles.learningBlock}>
           <Text style={styles.learningLabel}>裁判手势顺序 · SIGNAL SEQUENCE</Text>
           <View style={styles.signalList}>
-            {question.signalSequence.map((step, index) => <View key={`${question.id}-signal-${index}`} style={styles.signalRow}>
-              <View style={styles.signalNumber}><Text style={styles.signalNumberText}>{index + 1}</Text></View>
-              <Text style={styles.signalText}>{step}</Text>
+            {question.signalSequence.map((step, index) => <View key={`${question.id}-signal-${index}`} style={styles.signalStep}>
+              <View style={styles.signalRow}>
+                <View style={styles.signalNumber}><Text style={styles.signalNumberText}>{index + 1}</Text></View>
+                <Text style={styles.signalText}>{step.text}</Text>
+              </View>
+              {step.signals && <View style={styles.figureRow}>
+                {step.signals.map((id) => {
+                  const signal = refereeSignals[id];
+                  return <View key={`${question.id}-${index}-${id}`} style={[styles.figure, { width: FIGURE_HEIGHT * signal.width / signal.height }]}>
+                    <Image source={signal.image} accessible accessibilityLabel={`FIBA 官方手势 #${signal.figure} ${signal.english}：${signal.alt}`}
+                      resizeMode="contain" style={[styles.figureImage, { aspectRatio: signal.width / signal.height }]} />
+                    <Text style={styles.figureCaption}>#{signal.figure} · {signal.chinese}</Text>
+                  </View>;
+                })}
+              </View>}
             </View>)}
           </View>
+          {!hasSignals && <View style={styles.noSignal}>
+            <Text style={styles.noSignalTitle}>无官方手势 · NO SIGNAL</Text>
+            <Text style={styles.noSignalText}>FIBA 附录 A 没有“Play on”手势：不吹哨、不做任何手势，保持观察即可。</Text>
+          </View>}
           {question.signalNote && <Text style={styles.signalNote}>{question.signalNote}</Text>}
+          {hasSignals && <Text style={styles.signalSource}>手势图：FIBA Official Basketball Rules 2026 · Appendix A Referees’ Signals（PlayPic®）</Text>}
         </View>
         <View style={styles.ruleTrace}>
           <Text style={styles.ruleTraceLabel}>判罚依据 · OFFICIAL SOURCE</Text>
@@ -116,7 +137,8 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', gap: 8 },
   meta: { color: colors.primary, fontSize: 10, fontWeight: '800', letterSpacing: 0.5 },
   replayFrame: { position: 'relative', borderRadius: 15, overflow: 'hidden', backgroundColor: colors.primaryPale, borderWidth: 1, borderColor: colors.primarySoft },
-  replay: { width: '100%', aspectRatio: 16 / 9 },
+  // 'auto' height stops react-native-web from applying the bundled image's pixel height before aspectRatio.
+  replay: { width: '100%', height: 'auto', aspectRatio: 16 / 9 },
   replayBadge: { position: 'absolute', left: 10, bottom: 10, borderRadius: 10, paddingHorizontal: 9, paddingVertical: 6, backgroundColor: 'rgba(24,32,25,0.82)' },
   replayBadgeText: { color: colors.surface, fontSize: 9, fontWeight: '700' },
   prompt: { color: colors.ink, fontSize: 17, fontWeight: '800', lineHeight: 28 },
@@ -137,12 +159,21 @@ const styles = StyleSheet.create({
   termChip: { borderRadius: 11, backgroundColor: colors.surface, paddingHorizontal: 10, paddingVertical: 8, gap: 2, borderWidth: 1, borderColor: '#E8D7A8' },
   termChinese: { color: colors.ink, fontSize: 11, fontWeight: '800' },
   termEnglish: { color: '#806124', fontSize: 10, fontWeight: '700' },
-  signalList: { gap: 10 },
+  signalList: { gap: 14 },
+  signalStep: { gap: 9 },
   signalRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   signalNumber: { width: 22, height: 22, borderRadius: 11, backgroundColor: '#F3BD5B', alignItems: 'center', justifyContent: 'center' },
   signalNumberText: { color: '#182019', fontSize: 10, fontWeight: '800' },
   signalText: { flex: 1, color: colors.ink, fontSize: 12, lineHeight: 21 },
+  figureRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  figure: { maxWidth: '100%', borderRadius: 10, overflow: 'hidden', backgroundColor: colors.surface, borderWidth: 1, borderColor: '#E8D7A8' },
+  figureImage: { width: '100%', height: 'auto' },
+  figureCaption: { color: '#6D5426', fontSize: 10, fontWeight: '800', lineHeight: 15, paddingHorizontal: 7, paddingVertical: 5, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#E8D7A8' },
+  noSignal: { borderRadius: 11, backgroundColor: colors.surface, padding: 12, gap: 4, borderWidth: 1, borderColor: '#E8D7A8', borderStyle: 'dashed' },
+  noSignalTitle: { color: colors.primary, fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
+  noSignalText: { color: colors.ink, fontSize: 12, lineHeight: 20 },
   signalNote: { color: '#6D5426', fontSize: 11, lineHeight: 19, fontWeight: '700', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: '#D9C38B', paddingTop: 10 },
+  signalSource: { color: '#8A7444', fontSize: 9, lineHeight: 15 },
   ruleTrace: { borderRadius: 15, backgroundColor: colors.primaryPale, padding: 15, gap: 9, borderWidth: 1, borderColor: colors.primarySoft },
   ruleTraceLabel: { color: colors.primary, fontSize: 9, fontWeight: '800', letterSpacing: 0.9 },
   ruleTraceTitle: { color: colors.ink, fontSize: 14, fontWeight: '800', lineHeight: 22 },

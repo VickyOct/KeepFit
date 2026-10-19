@@ -1,4 +1,6 @@
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const test = require('node:test');
 const React = require('react');
 const { act, create } = require('react-test-renderer');
@@ -36,8 +38,10 @@ test('real quiz bank is balanced, mixed and traceable to the matching official r
   const clearPath = refereeRealQuizQuestions.find((question) => question.id === 'scenario-3-q3');
   assert.ok(clearPath.englishTerms.some((term) => term.english === 'Disruptive foul'));
   assert.ok(clearPath.englishTerms.some((term) => term.english === 'Illegal use of hands'));
-  assert.match(clearPath.signalSequence.join(' '), /B11.*Disruptive foul.*2 free throws/);
+  assert.match(clearPath.signalSequence.map((step) => step.text).join(' '), /B11.*Disruptive foul.*2 free throws/);
   assert.match(clearPath.signalNote, /最终分类.*disruptive foul/);
+  assert.deepEqual(clearPath.signalSequence.map((step) => step.signals ?? []),
+    [['stop-clock-foul'], ['disruptive-foul'], ['number-11-15', 'disruptive-foul', 'two-free-throws'], []]);
 
   for (const question of refereeRealQuizQuestions) {
     const lesson = refereeLessons.find((item) => item.id === question.lessonId);
@@ -50,6 +54,38 @@ test('real quiz bank is balanced, mixed and traceable to the matching official r
   assert.deepEqual(new Set(queue), new Set(refereeRealQuizQuestions.map((question) => question.id)));
   const nextCycle = createRealQuizQueue(queue[0], () => 0);
   assert.notEqual(nextCycle[0], queue[0]);
+});
+
+test('whistle answers map each step to cropped FIBA Appendix A signals; play-on answers show none unless counting', () => {
+  const loader = createLoader();
+  const { refereeRealQuizQuestions, refereeSignals } = loader.load('src/data/refereeRealQuiz.ts');
+
+  for (const [id, signal] of Object.entries(refereeSignals)) {
+    const file = path.join(__dirname, '../assets/referee/signals', `${id}.png`);
+    assert.equal(path.basename(path.dirname(signal.image.uri)), 'signals', id);
+    assert.equal(path.basename(signal.image.uri), `${id}.png`, id);
+    const png = fs.readFileSync(file);
+    assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [signal.width, signal.height], `${id} dimensions`);
+    assert.match(signal.figure, /^\d+$/);
+    assert.ok(signal.english && signal.chinese && signal.alt, id);
+  }
+
+  const used = refereeRealQuizQuestions.flatMap((question) => question.signalSequence.flatMap((step) => step.signals ?? []));
+  assert.ok(used.every((id) => refereeSignals[id]), 'unknown signal id');
+  assert.deepEqual(new Set(used), new Set(Object.keys(refereeSignals)));
+
+  for (const question of refereeRealQuizQuestions.filter((item) => item.whistle)) {
+    const signals = question.signalSequence.flatMap((step) => step.signals ?? []);
+    assert.match(signals[0], /^stop-clock/, question.id);
+    assert.ok(signals.length >= 2, question.id);
+  }
+  const byId = (id) => refereeRealQuizQuestions.find((question) => question.id === id).signalSequence.flatMap((step) => step.signals ?? []);
+  assert.deepEqual(byId('scenario-1-q2'), ['stop-clock', 'travelling', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-1-q5'), ['stop-clock', 'five-seconds', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-2-q10'), ['stop-clock', 'backcourt', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-4-q4'), ['stop-clock', 'shot-clock', 'cancel-score', 'direction-of-play']);
+  assert.deepEqual(byId('scenario-4-q6'), ['visible-count']);
+  for (const id of ['scenario-2-q4', 'scenario-4-q1', 'scenario-1-q9', 'scenario-1-q3']) assert.deepEqual(byId(id), [], id);
 });
 
 test('real quiz requires no answer input, hides the ruling, resets it for the next GIF and opens its source', async () => {
@@ -93,5 +129,39 @@ test('real quiz requires no answer input, hides the ruling, resets it for the ne
   assert.notEqual(second.id, first.id);
   assert.ok(!text(tree).includes(second.explanation));
   assert.ok(button(tree, '展开答案 · Reveal ruling'));
+  await act(async () => tree.unmount());
+});
+
+test('revealed answers show the gesture figures for each step, or say there is no official signal', async () => {
+  const loader = createLoader();
+  const Component = loader.load('src/components/RefereeRealQuiz.tsx').RefereeRealQuiz;
+  const { refereeRealQuizQuestions: questions, refereeSignals } = loader.load('src/data/refereeRealQuiz.ts');
+  const signalImages = (tree) => tree.root.findAllByType('Image').filter((node) => path.basename(path.dirname(node.props.source.uri)) === 'signals');
+  let tree;
+  await act(async () => {
+    tree = create(React.createElement(Component, { onOpenReference: () => {}, onStudy: () => {} }));
+  });
+
+  await click(tree, '生成真实判例 · Generate Real Quiz');
+  const seen = new Set();
+  for (let round = 0; round < questions.length; round++) {
+    const source = tree.root.findByType('Image').props.source.uri;
+    const question = questions.find((item) => item.animation.uri === source);
+    seen.add(question.id);
+    assert.equal(signalImages(tree).length, 0, `${question.id} figures stay hidden before reveal`);
+
+    await click(tree, '展开答案 · Reveal ruling');
+    const expected = question.signalSequence.flatMap((step) => step.signals ?? []);
+    assert.deepEqual(signalImages(tree).map((node) => node.props.source.uri), expected.map((id) => refereeSignals[id].image.uri), question.id);
+    for (const id of expected) {
+      assert.ok(signalImages(tree).some((node) => node.props.accessibilityLabel.includes(`#${refereeSignals[id].figure} ${refereeSignals[id].english}`)), id);
+      assert.ok(text(tree).includes(`#${refereeSignals[id].figure} · ${refereeSignals[id].chinese}`), id);
+    }
+    assert.equal(text(tree).includes('无官方手势 · NO SIGNAL'), expected.length === 0, question.id);
+    assert.equal(text(tree).includes('Appendix A Referees’ Signals'), expected.length > 0, question.id);
+
+    await click(tree, '再来一题 · Generate Next Quiz');
+  }
+  assert.equal(seen.size, questions.length);
   await act(async () => tree.unmount());
 });

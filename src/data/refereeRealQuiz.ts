@@ -3,12 +3,44 @@ import type { ImageSourcePropType } from 'react-native';
 import type { ScenarioQuestion } from '../refereeTypes';
 import { refereeScenarioExams } from './refereeScenarioExams';
 
+export type RefereeSignalId =
+  | 'stop-clock' | 'stop-clock-foul' | 'cancel-score' | 'visible-count' | 'direction-of-play' | 'travelling'
+  | 'five-seconds' | 'shot-clock' | 'backcourt' | 'number-11-15' | 'disruptive-foul' | 'two-free-throws';
+
+export type RefereeSignal = {
+  image: ImageSourcePropType;
+  width: number;
+  height: number;
+  figure: string;
+  english: string;
+  chinese: string;
+  alt: string;
+};
+
+// Crops of FIBA Official Basketball Rules 2026, Appendix A, made by scripts/extract-referee-signals.py.
+export const refereeSignals: Record<RefereeSignalId, RefereeSignal> = {
+  'stop-clock': { image: require('../../assets/referee/signals/stop-clock.png'), width: 461, height: 747, figure: '1', english: 'Stop the clock', chinese: '停表', alt: '裁判单臂上举，五指张开掌心向前' },
+  'stop-clock-foul': { image: require('../../assets/referee/signals/stop-clock-foul.png'), width: 461, height: 792, figure: '2', english: 'Stop the clock for foul', chinese: '犯规停表', alt: '裁判单臂上举，握拳' },
+  'cancel-score': { image: require('../../assets/referee/signals/cancel-score.png'), width: 925, height: 794, figure: '11', english: 'Cancel score, cancel play', chinese: '取消得分', alt: '裁判双臂在胸前交叉后向两侧打开，剪刀式动作一次' },
+  'visible-count': { image: require('../../assets/referee/signals/visible-count.png'), width: 925, height: 749, figure: '12', english: 'Visible count', chinese: '可见计数', alt: '裁判单臂平伸，掌心向下，边计数边横向摆动手掌' },
+  'direction-of-play': { image: require('../../assets/referee/signals/direction-of-play.png'), width: 462, height: 952, figure: '15', english: 'Direction of play', chinese: '进攻方向', alt: '裁判单臂平举，手指指向进攻方向，手臂与边线平行' },
+  travelling: { image: require('../../assets/referee/signals/travelling.png'), width: 461, height: 740, figure: '17', english: 'Travelling', chinese: '走步', alt: '裁判双拳在胸前上下绕圈旋转' },
+  'five-seconds': { image: require('../../assets/referee/signals/five-seconds.png'), width: 461, height: 749, figure: '21', english: '5 seconds', chinese: '五秒违例', alt: '裁判单手举起，伸出五指' },
+  'shot-clock': { image: require('../../assets/referee/signals/shot-clock.png'), width: 461, height: 749, figure: '23', english: 'Shot clock', chinese: '进攻计时违例', alt: '裁判抬臂，手指触碰同侧肩部' },
+  backcourt: { image: require('../../assets/referee/signals/backcourt.png'), width: 925, height: 749, figure: '24', english: 'Ball returned to backcourt', chinese: '回场违例', alt: '裁判手臂在身体前方左右摆动' },
+  'number-11-15': { image: require('../../assets/referee/signals/number-11-15.png'), width: 462, height: 903, figure: '30', english: 'No. 11 - 15', chinese: '号码 11：右拳＋左手 1 指', alt: '裁判右手握拳、左手伸出手指报告球员号码；11 号为右拳加左手 1 指' },
+  'disruptive-foul': { image: require('../../assets/referee/signals/disruptive-foul.png'), width: 462, height: 843, figure: '54', english: 'Disruptive foul', chinese: '破坏性犯规', alt: '裁判一臂握拳上举，再落到面部高度示意数字 2' },
+  'two-free-throws': { image: require('../../assets/referee/signals/two-free-throws.png'), width: 365, height: 789, figure: '65', english: '2 free throws', chinese: '两次罚球', alt: '裁判向记录台举起两根手指' },
+};
+
+export type SignalStep = { text: string; signals?: RefereeSignalId[] };
+
 export type RefereeRealQuizQuestion = ScenarioQuestion & {
   animation: ImageSourcePropType;
   animationAlt: string;
   animationLabel: string;
   englishTerms: { chinese: string; english: string }[];
-  signalSequence: string[];
+  signalSequence: SignalStep[];
   signalNote?: string;
 };
 
@@ -31,10 +63,10 @@ const visuals: Visual[] = [
       { chinese: '前场掷球线', english: 'Frontcourt throw-in line' },
     ],
     signalSequence: [
-      '吹哨，同时直臂举拳：Stop the clock for a foul。',
-      '确认符合无人阻挡推进、从后或侧非法接触的标准后，做破坏性犯规手势：一臂举拳，再在面部高度示意数字 2。',
-      '到记录台依次报告：B11 → Disruptive foul → 2 free throws。',
-      '罚球后指示 A 在记录台对侧前场掷球线恢复，进攻钟 14 秒。',
+      { text: '吹哨，同时直臂举拳：Stop the clock for a foul。', signals: ['stop-clock-foul'] },
+      { text: '确认符合无人阻挡推进、从后或侧非法接触的标准后，做破坏性犯规手势：一臂举拳，再在面部高度示意数字 2。', signals: ['disruptive-foul'] },
+      { text: '到记录台依次报告：B11 → Disruptive foul → 2 free throws。', signals: ['number-11-15', 'disruptive-foul', 'two-free-throws'] },
+      { text: '罚球后指示 A 在记录台对侧前场掷球线恢复，进攻钟 14 秒。' },
     ],
     signalNote: '这里的打手属于 illegal use of hands，但最终分类和记录台报告是 disruptive foul。不要先把它报告成一次普通“非法用手”，再当成第二个犯规升级。',
   },
@@ -49,7 +81,7 @@ const visuals: Visual[] = [
       { chinese: '合法防守位置', english: 'Legal guarding position' },
       { chinese: '继续比赛', english: 'Play on' },
     ],
-    signalSequence: ['不吹哨、不向记录台报告；保持观察并让比赛继续：Play on。'],
+    signalSequence: [{ text: '不吹哨、不向记录台报告；保持观察并让比赛继续：Play on。' }],
   },
   {
     questionId: 'scenario-1-q2',
@@ -63,9 +95,9 @@ const visuals: Visual[] = [
       { chinese: '最近地点掷球', english: 'Throw-in from the nearest place' },
     ],
     signalSequence: [
-      '吹哨并直臂开掌停表：Stop the clock。',
-      '做走步手势：Travelling（双拳旋转）。',
-      '指向 B 的进攻方向，并在最近地点执行掷球。',
+      { text: '吹哨并直臂开掌停表：Stop the clock。', signals: ['stop-clock'] },
+      { text: '做走步手势：Travelling（双拳旋转）。', signals: ['travelling'] },
+      { text: '指向 B 的进攻方向，并在最近地点执行掷球。', signals: ['direction-of-play'] },
     ],
   },
   {
@@ -79,7 +111,7 @@ const visuals: Visual[] = [
       { chinese: '五秒限制', english: '5-second limit' },
       { chinese: '合法比赛', english: 'Legal play' },
     ],
-    signalSequence: ['不吹哨；继续五秒计数，让合法的端线掷球继续：Play on。'],
+    signalSequence: [{ text: '不吹哨；继续五秒可见计数（Visible count），让合法的端线掷球继续：Play on。', signals: ['visible-count'] }],
   },
   {
     questionId: 'scenario-1-q5',
@@ -93,9 +125,9 @@ const visuals: Visual[] = [
       { chinese: '掷球', english: 'Throw-in' },
     ],
     signalSequence: [
-      '吹哨并直臂开掌停表：Stop the clock。',
-      '示意五秒违例：5-second violation。',
-      '指向 B 的进攻方向，并执行掷球。',
+      { text: '吹哨并直臂开掌停表：Stop the clock。', signals: ['stop-clock'] },
+      { text: '示意五秒违例：5-second violation。', signals: ['five-seconds'] },
+      { text: '指向 B 的进攻方向，并执行掷球。', signals: ['direction-of-play'] },
     ],
   },
   {
@@ -109,7 +141,7 @@ const visuals: Visual[] = [
       { chinese: '防止受伤', english: 'Prevent injury' },
       { chinese: '合法例外', english: 'Legal exception' },
     ],
-    signalSequence: ['不吹技术犯规、不做 T 手势；确认球员安全落地后继续比赛：Play on。'],
+    signalSequence: [{ text: '不吹技术犯规、不做 T 手势；确认球员安全落地后继续比赛：Play on。' }],
   },
   {
     questionId: 'scenario-2-q10',
@@ -123,9 +155,9 @@ const visuals: Visual[] = [
       { chinese: '前场／后场', english: 'Frontcourt / backcourt' },
     ],
     signalSequence: [
-      '吹哨并直臂开掌停表：Stop the clock。',
-      '做回场违例手势：Ball returned to the backcourt。',
-      '指向 B 的进攻方向，并执行相应掷球。',
+      { text: '吹哨并直臂开掌停表：Stop the clock。', signals: ['stop-clock'] },
+      { text: '做回场违例手势：Ball returned to the backcourt。', signals: ['backcourt'] },
+      { text: '指向 B 的进攻方向，并执行相应掷球。', signals: ['direction-of-play'] },
     ],
   },
   {
@@ -139,7 +171,7 @@ const visuals: Visual[] = [
       { chinese: '主动翻滚', english: 'Rolling' },
       { chinese: '继续比赛', english: 'Play on' },
     ],
-    signalSequence: ['不吹哨、不做走步手势；确认没有主动翻滚或持球站起后继续比赛：Play on。'],
+    signalSequence: [{ text: '不吹哨、不做走步手势；确认没有主动翻滚或持球站起后继续比赛：Play on。' }],
   },
   {
     questionId: 'scenario-4-q4',
@@ -153,9 +185,9 @@ const visuals: Visual[] = [
       { chinese: '进球无效', english: 'No basket' },
     ],
     signalSequence: [
-      '吹哨并直臂开掌停表：Stop the clock。',
-      '示意进攻计时违例：Shot-clock violation，并明确进球无效：No basket。',
-      '指向 B 的进攻方向，并执行掷球。',
+      { text: '吹哨并直臂开掌停表：Stop the clock。', signals: ['stop-clock'] },
+      { text: '示意进攻计时违例：Shot-clock violation，并明确进球无效：No basket。', signals: ['shot-clock', 'cancel-score'] },
+      { text: '指向 B 的进攻方向，并执行掷球。', signals: ['direction-of-play'] },
     ],
   },
   {
@@ -169,7 +201,7 @@ const visuals: Visual[] = [
       { chinese: '前场／后场', english: 'Frontcourt / backcourt' },
       { chinese: '继续比赛', english: 'Play on' },
     ],
-    signalSequence: ['不吹哨、不做回场手势；B 在空中建立新控制，可合法落到后场：Play on。'],
+    signalSequence: [{ text: '不吹哨、不做回场手势；B 在空中建立新控制，可合法落到后场：Play on。' }],
   },
 ];
 
