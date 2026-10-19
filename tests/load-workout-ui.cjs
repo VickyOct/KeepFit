@@ -38,7 +38,7 @@ function createLoader(overrides = {}) {
     new Function('require', 'module', 'exports', code)((id) => {
       if (Object.hasOwn(imports, id)) return imports[id];
       if (id === 'react/jsx-runtime') return require(id);
-      if (/\.(jpg|png)$/.test(id)) {
+      if (/\.(gif|jpg|png)$/.test(id)) {
         const asset = path.resolve(path.dirname(absolute), id);
         if (!fs.existsSync(asset)) throw new Error(`Missing image: ${asset}`);
         return { uri: asset };

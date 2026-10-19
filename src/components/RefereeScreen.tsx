@@ -9,6 +9,7 @@ import type { RefereeLesson, RefereeState } from '../refereeTypes';
 import { emptyRefereeState, examProgress, filterRefereeLessons, lessonProgress, passedQuiz, referencePage } from '../refereeUtils';
 import { colors } from '../theme';
 import { RefereeOriginalReader } from './RefereeOriginalReader';
+import { RefereeRealQuiz } from './RefereeRealQuiz';
 import { RefereeScenarioScreen } from './RefereeScenarioScreen';
 
 type Filter = '全部' | '未完成' | '已完成' | '待巩固';
@@ -193,7 +194,7 @@ export function RefereeScreen() {
         <View style={styles.hero}>
           <View style={styles.heroTop}><Text style={styles.version}>FIBA 2026</Text><Text style={styles.versionDate}>2026.10.01 起适用</Text></View>
           <Text style={styles.heroTitle}>从第一声哨，到最后一次判罚</Text>
-          <Text style={styles.heroText}>16 个主题课程 · 每课 10 题{ '\n' }5 套综合情景测试 · 额外 50 题</Text>
+          <Text style={styles.heroText}>16 个主题课程 · 每课 10 题{ '\n' }10 个随机动图判例 · 5 套综合情景测试</Text>
           <View style={styles.stats}>
             <View style={styles.stat}><Text style={styles.statValue}>{status === 'ready' ? completed : '—'}<Text style={styles.statTotal}> / 16</Text></Text><Text style={styles.statLabel}>阅读完成</Text></View>
             <View style={styles.stat}><Text style={styles.statValue}>{status === 'ready' ? mastered : '—'}<Text style={styles.statTotal}> / 16</Text></Text><Text style={styles.statLabel}>测验已通过</Text></View>
@@ -203,6 +204,11 @@ export function RefereeScreen() {
           {status === 'ready' && <Button label={nextLesson ? `继续学习 · 第 ${nextLesson.order} 课` : '课程已读完 · 复习第 1 课'} onPress={() => showLesson(nextLesson ?? refereeLessons[0])} />}
           <Button label="前往综合情景测试 · 5 套 50 题" secondary onPress={() => { pendingSection.current = 'scenario-exams'; scrollToPendingSection(); }} />
         </View>
+        <RefereeRealQuiz onOpenReference={(reference) => void openSource(reference)} onStudy={(lessonId, sectionId, reference) => {
+          const lesson = refereeLessons.find((item) => item.id === lessonId)!;
+          showLesson(lesson); pendingSection.current = sectionId; setReadingTarget(sectionId);
+          setOriginal({ sectionId, reference });
+        }} />
         <TextInput accessibilityLabel="搜索裁判课程" placeholder="搜中文、travelling、shot clock、条款编号…" placeholderTextColor={colors.muted} value={query} onChangeText={setQuery} returnKeyType="search" style={styles.search} />
         <Text style={styles.note}>关键术语括号内附英文，方便对照课堂用语；同一段内重复出现时以中文为主。</Text>
         <View style={styles.chips}>{(['全部', '未完成', '已完成', '待巩固'] as const).map((item) => <Pressable key={item} accessibilityRole="button" accessibilityState={{ selected: filter === item }} onPress={() => setFilter(item)} style={[styles.chip, filter === item && styles.chipActive]}><Text style={[styles.chipText, filter === item && styles.chipTextActive]}>{item}</Text></Pressable>)}</View>
