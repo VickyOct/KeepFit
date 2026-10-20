@@ -33,6 +33,7 @@ function setup() {
 test('screen unlocks after completion, restores a partial quiz, grades and reviews wrong answers', async () => {
   const f = setup(); const lesson = f.lessons[0];
   let tree = await f.render();
+  await click(tree, '查看全部 16 个课程');
   await click(tree, '第 1 课 赛前检查与人员管理，待学习');
   for (const section of lesson.sections) {
     assert.ok(text(tree).includes(section.body));
@@ -49,6 +50,7 @@ test('screen unlocks after completion, restores a partial quiz, grades and revie
   assert.equal(button(tree, '还剩 9 题未答').props.disabled, true);
   await act(async () => { tree.unmount(); });
   tree = await f.render();
+  await click(tree, '查看全部 16 个课程');
   await click(tree, '第 1 课 赛前检查与人员管理，✓ 阅读完成');
   await click(tree, '继续测验 · 已答 1/10');
   assert.match(text(tree), /第 2 \/ 10 题/);
@@ -97,6 +99,7 @@ test('screen unlocks after completion, restores a partial quiz, grades and revie
 
 test('English originals expand the chosen reference only and leave saved learning progress untouched', async () => {
   const f = setup(); const tree = await f.render();
+  await click(tree, '查看全部 16 个课程');
   await click(tree, '第 1 课 赛前检查与人员管理，待学习');
   assert.doesNotMatch(text(tree), /FIBA 官方英文原文 ·/);
   for (const section of f.lessons[0].sections) {
@@ -123,6 +126,7 @@ test('English originals expand the chosen reference only and leave saved learnin
 
 test('lesson contents jump to detailed teaching after either layout order', async () => {
   const f = setup(); const tree = await f.render();
+  await click(tree, '查看全部 16 个课程');
   await click(tree, '第 1 课 赛前检查与人员管理，待学习');
   const section = f.lessons[0].sections[3];
   await click(tree, `阅读讲解 4 ${section.title}`);
@@ -139,6 +143,7 @@ test('lesson contents jump to detailed teaching after either layout order', asyn
 
 test('failed completion is not displayed as saved and retry preserves the flow', async () => {
   const f = setup(); const tree = await f.render();
+  await click(tree, '查看全部 16 个课程');
   await click(tree, '第 1 课 赛前检查与人员管理，待学习');
   f.failWrite(true);
   await click(tree, '标记为已完成 · Mark as completed');
@@ -156,12 +161,37 @@ test('load failures permit reading but lock writes until a successful reload', a
   const f = setup(); f.failRead(true);
   const tree = await f.render();
   assert.match(text(tree), /暂时无法读取原有进度/);
+  await click(tree, '查看全部 16 个课程');
   await click(tree, '第 1 课 赛前检查与人员管理，进度待读取');
   assert.match(text(tree), /场地与装备检查/);
   assert.equal(button(tree, '标记为已完成 · Mark as completed').props.disabled, true);
   f.failRead(false);
   await click(tree, '重新读取学习进度');
   assert.equal(button(tree, '标记为已完成 · Mark as completed').props.disabled, false);
+  await act(async () => { tree.unmount(); });
+});
+
+test('lessons sit behind the course entry and back returns to where a lesson was opened', async () => {
+  const f = setup(); const tree = await f.render();
+  const label = (lesson) => `第 ${lesson.order} 课 ${lesson.title}，待学习`;
+  assert.match(text(tree), /从第一声哨，到最后一次判罚/);
+  assert.equal(button(tree, label(f.lessons[0])), undefined);
+  assert.equal(tree.root.findAllByProps({ accessibilityLabel: '搜索裁判课程' }).length, 0);
+  await click(tree, '查看全部 16 个课程');
+  for (const lesson of f.lessons) assert.ok(button(tree, label(lesson)));
+  assert.ok(tree.root.findAllByProps({ accessibilityLabel: '搜索裁判课程' }).length > 0);
+  await click(tree, label(f.lessons[1]));
+  await click(tree, '返回课程列表');
+  assert.ok(button(tree, label(f.lessons[0])));
+  await click(tree, '返回裁判学习');
+  assert.equal(button(tree, label(f.lessons[0])), undefined);
+  await click(tree, '继续学习 · 第 1 课');
+  await click(tree, '返回裁判学习');
+  assert.ok(button(tree, '查看全部 16 个课程'));
+  await click(tree, '查看全部 16 个课程');
+  await click(tree, '读完课程后 · 前往综合情景测试');
+  assert.ok(button(tree, '综合模拟 1，未开始'));
+  assert.equal(button(tree, label(f.lessons[0])), undefined);
   await act(async () => { tree.unmount(); });
 });
 

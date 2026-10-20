@@ -84,6 +84,7 @@ test('exam save failure never checks an unsaved answer; read failures disable at
 test('the last course leads into the five final sets without marking lessons completed', async () => {
   const f = setup(); const tree = await f.render();
   const last = f.load('src/data/refereeLessons.ts').refereeLessons.at(-1);
+  await click(tree, '查看全部 16 个课程');
   await click(tree, `第 16 课 ${last.title}，待学习`);
   await click(tree, '进入综合情景测试 · 5 套 50 题');
   assert.ok(button(tree, '综合模拟 5，未开始')); assert.equal(f.stored(), null);
