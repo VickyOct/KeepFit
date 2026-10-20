@@ -38,13 +38,15 @@ function worker(fail = false) {
   return { run, request, stores, networkCalls: () => networkCalls, claimed: () => claimed };
 }
 
-test('exported app, scripts and exercise images open without a network after caching', async () => {
+test('exported app, scripts, exercise images, referee GIFs and signal figures open without a network after caching', async () => {
   const w = worker();
   await w.run('install'); await w.run('activate');
   assert.ok(w.claimed()); assert.ok(!w.stores.has('keepfit-old'));
   assert.match((await w.request('/', 'navigate')).toString(), /KeepFit/);
   const assets = [...[...w.stores.values()][0].keys()];
   assert.ok(assets.some((url) => url.endsWith('.jpg')));
+  assert.ok(assets.some((url) => url.endsWith('.gif')));
+  assert.ok(assets.some((url) => /referee\/signals\/disruptive-foul\.\w+\.png$/.test(url)));
   for (const url of assets) assert.ok((await w.request(url)).length > 0, url);
   assert.equal(w.networkCalls(), 0);
   assert.equal(await w.request('https://api.nal.usda.gov/fdc/v1/foods/search'), undefined);
