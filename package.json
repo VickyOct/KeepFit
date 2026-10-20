@@ -12,11 +12,13 @@
     "react-dom": "^19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-web": "^0.21.3"
+    "react-native-web": "^0.21.3",
+    "three": "0.186.1"
   },
   "devDependencies": {
     "@expo/ngrok": "^4.1.0",
     "@types/react": "~19.2.2",
+    "@types/three": "0.186.0",
     "fake-indexeddb": "^6.2.5",
     "react-test-renderer": "19.2.3",
     "typescript": "~6.0.3"
