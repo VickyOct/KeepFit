@@ -4,6 +4,7 @@ import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, Te
 
 import { REFEREE_CONTENT_NOTE, REFEREE_PASS_PERCENT, REFEREE_SOURCE_TITLE, REFEREE_SOURCE_URL, refereeLessons } from '../data/refereeLessons';
 import { completeRefereeLesson, loadRefereeState, saveRefereeAnswer, submitRefereeQuiz } from '../refereeStorage';
+import { refereeRealQuizQuestions } from '../data/refereeRealQuiz';
 import { refereeScenarioExams } from '../data/refereeScenarioExams';
 import type { RefereeLesson, RefereeState } from '../refereeTypes';
 import { emptyRefereeState, examProgress, filterRefereeLessons, lessonProgress, passedQuiz, referencePage } from '../refereeUtils';
@@ -219,7 +220,7 @@ export function RefereeScreen() {
         <View style={styles.hero}>
           <View style={styles.heroTop}><Text style={styles.version}>FIBA 2026</Text><Text style={styles.versionDate}>2026.10.01 起适用</Text></View>
           <Text style={styles.heroTitle}>从第一声哨，到最后一次判罚</Text>
-          <Text style={styles.heroText}>16 个主题课程 · 每课 10 题{ '\n' }10 个随机动图判例 · 5 套综合情景测试</Text>
+          <Text style={styles.heroText}>16 个主题课程 · 每课 10 题{ '\n' }{refereeRealQuizQuestions.length} 个随机动图判例 · 5 套综合情景测试</Text>
           <View style={styles.stats}>
             <View style={styles.stat}><Text style={styles.statValue}>{status === 'ready' ? completed : '—'}<Text style={styles.statTotal}> / 16</Text></Text><Text style={styles.statLabel}>阅读完成</Text></View>
             <View style={styles.stat}><Text style={styles.statValue}>{status === 'ready' ? mastered : '—'}<Text style={styles.statTotal}> / 16</Text></Text><Text style={styles.statLabel}>测验已通过</Text></View>
