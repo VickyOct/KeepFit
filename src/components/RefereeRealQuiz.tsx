@@ -4,6 +4,7 @@ import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { createRealQuizQueue, refereeRealQuizQuestions, refereeSignals } from '../data/refereeRealQuiz';
 import { referencePage } from '../refereeUtils';
 import { colors } from '../theme';
+import { Referee3DPreview } from './Referee3DPreview';
 
 // Rulebook figures share one height so a step's signals line up; two portrait figures fit a phone row.
 const FIGURE_HEIGHT = 200;
@@ -39,6 +40,7 @@ export function RefereeRealQuiz({ onOpenReference, onStudy }: Props) {
     </View>
     <Text style={styles.body}>点击后随机抽取判例动图。先像在场上一样吹哨或做手势，再展开答案；不用打字，也不会调用麦克风或摄像头。</Text>
     <Text style={styles.note}>题库按打乱顺序完整轮换，不按章节排列；一轮内不会重复。动图为离线战术示意，并非官方比赛录像。</Text>
+    <Referee3DPreview />
     <Pressable accessibilityRole="button" accessibilityLabel={question ? '再来一题 · Generate Next Quiz' : '生成真实判例 · Generate Real Quiz'} onPress={generate} style={styles.generateButton}>
       <Text style={styles.generateButtonText}>{question ? '再来一题 · Generate Next Quiz' : '生成真实判例 · Generate Real Quiz'}</Text>
       <Text style={styles.generateArrow}>↻</Text>
